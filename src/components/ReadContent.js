@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 
 // Content라는 이름의 클래스 컴포넌트를 정의합니다.
-class Content extends Component {
+class ReadContent extends Component {
     // render 메서드는 컴포넌트가 화면에 렌더링될 때마다 호출됩니다.
     render() {
         // 반환하는 JSX는 article 요소로 구성되어 있습니다.
@@ -23,4 +23,4 @@ class Content extends Component {
 }
 
 // Content 컴포넌트를 export하여 다른 파일에서 import하여 사용할 수 있도록 합니다.
-export default Content;
+export default ReadContent;

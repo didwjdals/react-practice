@@ -1,8 +1,11 @@
 import { Component } from "react";
-import Content from "./components/Content";
+import ReadContent from "./components/ReadContent";
 import TOC from "./components/TOC";
 import Subject from "./components/Subject";
 import "./App.css";
+import Control from "./components/Control";
+import CreateContent from "./components/CreateContent";
+import UpdateContent from "./components/UpdateContent";
 
 import carbImg from "./img/carb.jpeg";
 import nutritionImg from "./img/nutrition.jpeg";
@@ -13,10 +16,11 @@ import fatImg from "./img/fat.jpeg";
 class App extends Component {
   constructor(props) {
     super(props);
+    this.max_content_id = 3
     this.state = {
       mode: "read",
       selected_content_id: 1,
-      subject: { title: "3대 영양소", sub: "탄단지", image: nutritionImg },
+      subject: { title: "N대 영양소", sub: "탄단지", image: nutritionImg },
       welcome: {
         title: "welcome", desc: "영양소(營養素, 영어: nutrient)는 생명활동과 성장을 위해 생물체의 외부에서 받아들여야 하는 화합물이다. 많은 생물체들은 영양소를 이용하여 에너지를 생산하며, 세포를 구성한다.        인간에게 필요한 영양소에는 주영양소(主營養素) 또는 대량 영양소(macronutrient)인 탄수화물, 단백질, 지방이 대표적이며, 3대 영양소라고 불리기도 한다. 추가적으로 물이 언급되기도 한다. 주영양소는 물질대사를 통해 에너지를 생산하는 역할을 한다. 또, 단백질은 에너지 생산 외에도, 인체의 각 장기들의 주 성분으로 몸을 구성하고, 호르몬으로 사용되어 생리작용을 조절하기도 한다. 비타민, 무기질, 물은 부영양소(또는 미량영양소)로 취급된다."
         , image: nutritionImg
@@ -37,28 +41,87 @@ class App extends Component {
       ],
     };
   }
-  render() {
+  getReadContent() {
+    var i = 0;
+    while (i < this.state.contents.length) {
+      var data = this.state.contents[i];
+      if (data.id === this.state.selected_content_id) {
+        return data;
+      }
+      i = i + 1;
+    }
+  }
+
+  getContent() {
     var _title,
-      _desc, _image = null;
+      _desc,
+      _image,
+      _article = null;
     if (this.state.mode === "welcome") {
       _title = this.state.welcome.title;
       _desc = this.state.welcome.desc;
       _image = this.state.welcome.image;
+      _article = (
+        <ReadContent title={_title} desc={_desc} img={_image}></ReadContent>
+      );
     } else if (this.state.mode === "read") {
-      var i = 0;
-      while (i < this.state.contents.length) {
-        var data = this.state.contents[i];
-        if (data.id === this.state.selected_content_id) {
-          _title = data.title;
-          _desc = data.desc;
-          _image = data.image;
-          break;
-        }
-        i = i + 1;
-      }
+
+      var _content = this.getReadContent();
+
+      _article = (
+        <ReadContent
+          title={_content.title}
+          desc={_content.desc}
+          img={_content.image}></ReadContent>
+      );
+    } else if (this.state.mode === "create") {
+      _article = (
+        <CreateContent
+          onSubmit={function (_title, _desc) {
+            this.max_content_id = this.max_content_id + 1;
+            var _contents = this.state.contents.concat({
+              id: this.max_content_id,
+              title: _title,
+              desc: _desc,
+              image: "",
+            });
+            this.setState({ contents: _contents });
+          }.bind(this)}
+        ></CreateContent>
+      );
+
+    } else if (this.state.mode === "update") {
+      var _content = this.getReadContent();
+      _article = (
+        <UpdateContent
+          data={_content}
+          onSubmit={function (_id, _title, _desc) {
+            var _contents = Array.from(this.state.contents);
+            var i = 0;
+            while (i < _contents.length) {
+              if (_contents[i].id === _id) {
+                _contents[i] = { id: _id, title: _title, desc: _desc };
+                break;
+              }
+              i = i + 1;
+            }
+            this.setState({ contents: _contents, mode: "read" });
+          }.bind(this)}
+        ></UpdateContent>
+      );
     }
+
+    return _article;
+  }
+
+  render() {
+
+
+
+
+    console.log(this.state.mode);
     return (
-      <div className="App">
+      <div className="App" >
         <Subject
           title={this.state.subject.title}
           sub={this.state.subject.sub}
@@ -72,7 +135,29 @@ class App extends Component {
             this.setState({ mode: "read", selected_content_id: Number(id) });
           }.bind(this)}
         ></TOC>
-        <Content title={_title} desc={_desc} img={_image}></Content>
+        <Control
+          onChangeMode={function (_mode) {
+            if (_mode === "delete") {
+              if (window.confirm("really?")) {
+                var _contents = Array.from(this.state.contents);
+                var i = 0;
+                while (i < _contents.length) {
+                  if (_contents[i].id === this.state.selected_content_id) {
+                    _contents.splice(i, 1);
+                    break;
+                  }
+                  i = i + 1;
+                }
+                this.setState({ mode: "welcome", contents: _contents });
+                alert("deleted!");
+              }
+            } else {
+              this.setState({ mode: _mode });
+            }
+          }.bind(this)}
+        ></Control>
+
+        {this.getContent()}
       </div>
     );
   }
